@@ -179,4 +179,4 @@ rfm.head()
 rfm['Segment'] = rfm['Segment'].replace(seg_map, regex=True)
 rfm.head()
 
-rfm[["Segment","Recency","Frequency", "Monetary"]].groupby("Segment").agg(["mean","median","count"])
+rfm[["Segment", "Recency", "Frequency", "Monetary"]].groupby("Segment").agg(["mean", "median", "count"])

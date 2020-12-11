@@ -118,3 +118,65 @@ freq_df = pure_df.groupby("Customer ID").agg({"InvoiceDate": "nunique"})
 # değişken ismine sıklık dedik
 freq_df.rename(columns={"InvoiceDate": "Frequency"}, inplace=True)
 freq_df.head()
+
+# Monetary İçin İşlemler
+
+# Kullanıcılara göre gurp çektik ve bu kullanıcıların her bir alışverişin toplamını yeni df'e atadık.
+monetary_df = pure_df.groupby("Customer ID").agg({"TotalPrice": "sum"})
+
+# Değişkeni yeniden isimlendirdik.
+monetary_df.rename(columns={"TotalPrice": "Monetary"}, inplace=True)
+
+monetary_df.head()
+
+# şimdi elimizdeki ayrı 3 yeni dfin bilgilerine bakalım :
+
+print(recency_df.shape, freq_df.shape, monetary_df.shape)
+
+# bu 3 dataframi, tek bir dataframe de birleştirelim :
+rfm = pd.concat([recency_df, freq_df, monetary_df], axis=1)
+rfm.head()
+
+# yeni bir değişken oluşturalım ve buna RecencyScore diyelim.
+rfm["RecencyScore"] = pd.qcut(rfm["Recency"], 5, labels=[5, 4, 3, 2, 1])
+rfm.head()
+
+# aynı işlemi frequency ve monetary için yapalım
+rfm["FrequencyScore"] = pd.qcut(rfm["Frequency"].rank(method="first"), 5, labels=[1, 2, 3, 4, 5])
+rfm["MonetaryScore"] = pd.qcut(rfm['Monetary'], 5, labels=[1, 2, 3, 4, 5])
+rfm.head()
+
+# rfm skorları kategorik değere dönüştürülüp df'e eklendi
+rfm["RFM_SCORE"] = (rfm['RecencyScore'].astype(str) +
+                    rfm['FrequencyScore'].astype(str) +
+                    rfm['MonetaryScore'].astype(str))
+
+rfm.head()
+
+# rfm içinde koşul çalıştıralım ve bu koşulun ilk 5 gözlemine bakalım :
+# burada değişkeni "555" e eşit olan gözlemler gözükürken bunların ilk 5ine bakalım
+rfm[rfm["RFM_SCORE"] == "555"].head()
+
+# Regular Expressions (Düzenli İfadeler) kullanılarak RFM haritası çıkarıldı
+seg_map = {
+    r'[1-2][1-2]': 'Hibernating',
+    r'[1-2][3-4]': 'At Risk',
+    r'[1-2]5': 'Can\'t Loose',
+    r'3[1-2]': 'About to Sleep',
+    r'33': 'Need Attention',
+    r'[3-4][4-5]': 'Loyal Customers',
+    r'41': 'Promising',
+    r'51': 'New Customers',
+    r'[4-5][2-3]': 'Potential Loyalists',
+    r'5[4-5]': 'Champions'
+}
+
+# rfm içinde "Segment" isimli değişken oluşturduk ve bu değişkeni 2 string birleştirerek yaptık.
+rfm['Segment'] = rfm['RecencyScore'].astype(str) + rfm['FrequencyScore'].astype(str)
+rfm.head()
+
+# Segment değişkeninin elemanlarının her birini, yukarıdaki regex ifadesndeki karşılıkları ile değiştirdik.
+rfm['Segment'] = rfm['Segment'].replace(seg_map, regex=True)
+rfm.head()
+
+rfm[["Segment","Recency","Frequency", "Monetary"]].groupby("Segment").agg(["mean","median","count"])

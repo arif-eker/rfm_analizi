@@ -108,3 +108,13 @@ temp_df.head()
 
 recency_df = temp_df["Recency"].apply(lambda x: x.days)
 recency_df.head()
+
+# Frequency İçin İşlemler
+
+# yeni df oluşturduk. bunu Customer ID ye göre gruplayıp, Fatura tarihinin eşsiz değerlerine göre yaptık.
+# yani bir kullanıcı kaç farklı fatura ödemiş bunu tuttuk.
+freq_df = pure_df.groupby("Customer ID").agg({"InvoiceDate": "nunique"})
+
+# değişken ismine sıklık dedik
+freq_df.rename(columns={"InvoiceDate": "Frequency"}, inplace=True)
+freq_df.head()

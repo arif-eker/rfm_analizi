@@ -180,3 +180,23 @@ rfm['Segment'] = rfm['Segment'].replace(seg_map, regex=True)
 rfm.head()
 
 rfm[["Segment", "Recency", "Frequency", "Monetary"]].groupby("Segment").agg(["mean", "median", "count"])
+
+
+# RFM İşlemleri Sonrası Öneriler
+
+champions = rfm[rfm["Segment"] == "Champions"]["Monetary"].sum()
+need_attentions = rfm[rfm["Segment"] == "Need Attention"]["Monetary"].sum()
+new_customers = rfm[rfm["Segment"] == "New Customers"]["Monetary"].sum()
+genel_toplam = rfm["Monetary"].sum()
+
+print("Toplam Gelir : ",genel_toplam)
+print("Şampiyonların Harcadığı Tutar : ",champions)
+print("Aksiyon Bekleyenlerin Harcadığı Tutar : ",need_attentions)
+print("Yeni Müşterilerin Harcadığı Tutar : ",new_customers)
+
+def yuzde_hesapla(x):
+    return x*100/genel_toplam
+
+print("Şampiyonların Genel Toplamdaki Harcama Yüzdesi %: ", yuzde_hesapla(champions))
+print("Aksiyon Bekleyenlerin Genel Toplamdaki Harcama Yüzdesi %: ", yuzde_hesapla(need_attentions))
+print("Yeni Müşterilerin Genel Toplamdaki Harcama Yüzdesi %: ", yuzde_hesapla(new_customers))
